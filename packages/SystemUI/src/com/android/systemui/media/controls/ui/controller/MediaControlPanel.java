@@ -601,6 +601,7 @@ public class MediaControlPanel {
                         mLoadingEffect::finish,
                         TURBULENCE_NOISE_PLAY_DURATION
                 );
+		/*
             } else {
                 mTurbulenceNoiseController.play(
                         Type.SIMPLEX_NOISE,
@@ -610,6 +611,7 @@ public class MediaControlPanel {
                         mTurbulenceNoiseController::finish,
                         TURBULENCE_NOISE_PLAY_DURATION
                 );
+		*/
             }
         }
 
