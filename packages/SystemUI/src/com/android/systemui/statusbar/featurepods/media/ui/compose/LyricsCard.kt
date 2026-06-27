@@ -28,8 +28,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,7 +44,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.systemui.statusbar.featurepods.media.shared.model.MediaControlChipModel
-import com.android.systemui.statusbar.featurepods.popups.ui.compose.PopupSurface
 
 private val PopupShape = RoundedCornerShape(34.dp)
 
@@ -63,8 +61,11 @@ fun LyricsCard(
         if (syncedLyrics.isNullOrBlank()) emptyList() else parseLrc(syncedLyrics)
     }
 
-    PopupSurface(
+    Surface(
+        color = Color(0xF21A1A1A),
+        contentColor = Color.White,
         shape = PopupShape,
+        shadowElevation = 12.dp,
         modifier = modifier.widthIn(min = 320.dp, max = 400.dp).height(200.dp),
     ) {
         if (lyricLines.isNotEmpty()) {
@@ -105,7 +106,7 @@ fun LyricsCard(
 
                     Text(
                         text = line.text,
-                        color = LocalContentColor.current,
+                        color = Color.White,
                         fontSize = (16.sp * scale),
                         fontWeight = fontWeight,
                         textAlign = TextAlign.Center,
@@ -125,7 +126,7 @@ fun LyricsCard(
                 item {
                     Text(
                         text = plainLyrics,
-                        color = LocalContentColor.current.copy(alpha = 0.8f),
+                        color = Color.White.copy(alpha = 0.8f),
                         fontSize = 15.sp,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()

@@ -57,6 +57,7 @@ import com.android.systemui.statusbar.featurepods.av.ui.compose.AvControlsChipPo
 import com.android.systemui.statusbar.featurepods.flashlight.ui.compose.FlashlightPopup
 import com.android.systemui.statusbar.featurepods.livescore.ui.compose.LiveScorePopup
 import com.android.systemui.statusbar.featurepods.media.ui.compose.MediaControlPopup
+import com.android.systemui.statusbar.featurepods.media.ui.compose.LyricsCard
 import com.android.systemui.statusbar.featurepods.popups.ui.model.PopupChipId
 import com.android.systemui.statusbar.featurepods.popups.ui.model.PopupChipModel
 import com.android.systemui.statusbar.featurepods.popups.ui.model.PopupContentModel
@@ -151,21 +152,19 @@ fun StatusBarPopup(
                     }
             ) {
                 when (val popupContent = viewModel.popupContent) {
-                    is PopupContentModel.Media -> MediaControlPopup(model = popupContent.model)
                     is PopupContentModel.Media -> {
                         val model = popupContent.model
-                        val useWaveform = popupContent.useWaveform
                         val hasLyrics = !model.lyrics.isNullOrBlank() || !model.syncedLyrics.isNullOrBlank()
                         if (hasLyrics) {
                             androidx.compose.foundation.layout.Column(
                                 horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
                                 verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
                             ) {
-                                MediaControlPopup(model = model, useWaveform = useWaveform)
+                                MediaControlPopup(model = model)
                                 LyricsCard(model = model)
                             }
                         } else {
-                            MediaControlPopup(model = model, useWaveform = useWaveform)
+                            MediaControlPopup(model = model)
                         }
                     }
                     is PopupContentModel.ScreenRecord -> ScreenRecordPopup(model = popupContent.model)

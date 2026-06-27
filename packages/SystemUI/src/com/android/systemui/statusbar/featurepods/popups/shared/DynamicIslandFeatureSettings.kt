@@ -35,48 +35,7 @@ object DynamicIslandFeatureSettings {
     const val STOPWATCH = "status_bar_dynamic_island_stopwatch"
     const val LIVE_SCORES = "status_bar_dynamic_island_live_scores"
     const val SHOW_LYRICS = "status_bar_dynamic_island_lyrics"
-    const val WIDTH_SCALE = "status_bar_dynamic_island_width_scale"
-    const val HEIGHT_SCALE = "status_bar_dynamic_island_height_scale"
-    const val POPUP_COLOR_MODE = "status_bar_dynamic_island_popup_color_mode"
-
-    const val SCALE_MIN = 0.7f
-    const val SCALE_MAX = 1.4f
-    private const val SCALE_DEFAULT = 1.0f
-    private const val SCALE_PERCENT_DEFAULT = 100
-<<<<<<< HEAD
-
-    const val POPUP_COLOR_MODE_DEFAULT = 0
-    const val POPUP_COLOR_MODE_BLUR = 1
-    const val POPUP_COLOR_MODE_SOLID_BLACK = 2
-
-    fun ContentResolver.readDynamicIslandPopupColorMode(): Int {
-        return Settings.System.getIntForUser(
-            this,
-            POPUP_COLOR_MODE,
-            POPUP_COLOR_MODE_DEFAULT,
-            UserHandle.USER_CURRENT,
-        )
-    }
-
-    fun observeDynamicIslandPopupColorMode(context: Context): Flow<Int> =
-        callbackFlow {
-            val observer =
-                object : ContentObserver(Handler(Looper.getMainLooper())) {
-                    override fun onChange(selfChange: Boolean) {
-                        trySend(context.contentResolver.readDynamicIslandPopupColorMode())
-                    }
-                }
-            context.contentResolver.registerContentObserver(
-                Settings.System.getUriFor(POPUP_COLOR_MODE),
-                false,
-                observer,
-                UserHandle.USER_ALL,
-            )
-            trySend(context.contentResolver.readDynamicIslandPopupColorMode())
-            awaitClose { context.contentResolver.unregisterContentObserver(observer) }
-        }
 =======
->>>>>>> 0a42ae052d84 (SystemUI: DynamicIsland: Allow adjust height and width [1/2])
 
     fun ContentResolver.readDynamicIslandFeatureEnabled(
         key: String,
@@ -127,9 +86,6 @@ object DynamicIslandFeatureSettings {
             trySend(context.contentResolver.readDynamicIslandFeatureEnabled(key, defaultValue))
             awaitClose { context.contentResolver.unregisterContentObserver(observer) }
         }
-<<<<<<< HEAD
-}
-=======
 
     fun observeDynamicIslandScale(
         context: Context,
@@ -153,4 +109,3 @@ object DynamicIslandFeatureSettings {
             awaitClose { context.contentResolver.unregisterContentObserver(observer) }
         }   
 }
->>>>>>> 0a42ae052d84 (SystemUI: DynamicIsland: Allow adjust height and width [1/2])
