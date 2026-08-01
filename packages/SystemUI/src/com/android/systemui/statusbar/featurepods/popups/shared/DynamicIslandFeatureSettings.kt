@@ -43,6 +43,7 @@ object DynamicIslandFeatureSettings {
     const val SCALE_MAX = 1.4f
     private const val SCALE_DEFAULT = 1.0f
     private const val SCALE_PERCENT_DEFAULT = 100
+<<<<<<< HEAD
 
     const val POPUP_COLOR_MODE_DEFAULT = 0
     const val POPUP_COLOR_MODE_BLUR = 1
@@ -74,6 +75,8 @@ object DynamicIslandFeatureSettings {
             trySend(context.contentResolver.readDynamicIslandPopupColorMode())
             awaitClose { context.contentResolver.unregisterContentObserver(observer) }
         }
+=======
+>>>>>>> 0a42ae052d84 (SystemUI: DynamicIsland: Allow adjust height and width [1/2])
 
     fun ContentResolver.readDynamicIslandFeatureEnabled(
         key: String,
@@ -85,6 +88,16 @@ object DynamicIslandFeatureSettings {
             if (defaultValue) 1 else 0,
             UserHandle.USER_CURRENT,
         ) != 0
+    }
+
+    fun ContentResolver.readDynamicIslandScale(key: String): Float {
+        val percent = Settings.System.getIntForUser(
+            this,
+            key,
+            SCALE_PERCENT_DEFAULT,
+            UserHandle.USER_CURRENT,
+        )
+        return (percent / 100f).coerceIn(SCALE_MIN, SCALE_MAX)
     }
 
     fun observeDynamicIslandFeatureEnabled(
@@ -114,4 +127,30 @@ object DynamicIslandFeatureSettings {
             trySend(context.contentResolver.readDynamicIslandFeatureEnabled(key, defaultValue))
             awaitClose { context.contentResolver.unregisterContentObserver(observer) }
         }
+<<<<<<< HEAD
 }
+=======
+
+    fun observeDynamicIslandScale(
+        context: Context,
+        key: String,
+    ): Flow<Float> =
+        callbackFlow {
+            val observer =
+                object : ContentObserver(Handler(Looper.getMainLooper())) {
+                    override fun onChange(selfChange: Boolean) {
+                        trySend(context.contentResolver.readDynamicIslandScale(key))
+                    }
+                }
+
+            context.contentResolver.registerContentObserver(
+                Settings.System.getUriFor(key),
+                false,
+                observer,
+                UserHandle.USER_ALL,
+            )
+            trySend(context.contentResolver.readDynamicIslandScale(key))
+            awaitClose { context.contentResolver.unregisterContentObserver(observer) }
+        }   
+}
+>>>>>>> 0a42ae052d84 (SystemUI: DynamicIsland: Allow adjust height and width [1/2])
