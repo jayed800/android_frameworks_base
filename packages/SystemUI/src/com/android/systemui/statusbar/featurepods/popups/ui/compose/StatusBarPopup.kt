@@ -18,27 +18,18 @@ package com.android.systemui.statusbar.featurepods.popups.ui.compose
 
 import android.view.ViewTreeObserver
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,10 +40,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.LayoutCoordinates
-import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.dimensionResource
@@ -86,6 +76,7 @@ import kotlinx.coroutines.launch
 fun StatusBarPopup(
     viewModel: PopupChipModel.Shown,
     isVisible: Boolean,
+    chipBoundsInScreen: Rect? = null,
 ) {
     val density = Density(LocalContext.current)
     Popup(
@@ -104,10 +95,10 @@ fun StatusBarPopup(
         onDismissRequest = { viewModel.hidePopup() },
     ) {
         val popupView = LocalView.current
-<<<<<<< HEAD
-=======
         var popupBoundsInScreen by remember { mutableStateOf<Rect?>(null) }
 
+=======
+        var popupBoundsInScreen by remember { mutableStateOf<Rect?>(null) }
         val transformOrigin by remember {
             derivedStateOf {
                 val chip = chipBoundsInScreen
@@ -115,109 +106,11 @@ fun StatusBarPopup(
                 if (chip == null || popup == null || popup.width <= 0f) {
                     TransformOrigin(0.5f, 0f)
                 } else {
-                    val pivotX =
-                        ((chip.center.x - popup.left) / popup.width).coerceIn(0.05f, 0.95f)
-                    val pivotY =
-                        if (popup.height > 0f) {
-                            ((chip.center.y - popup.top) / popup.height).coerceIn(0f, 0.3f)
-                        } else {
-                            0f
-                        }
-                    TransformOrigin(pivotX, pivotY)
+                    val pivotX = ((chip.center.x - popup.left) / popup.width).coerceIn(0.05f, 0.95f)
+                    TransformOrigin(pivotX, 0f)
                 }
             }
         }
-
-        val initialScaleFromChip by remember {
-            derivedStateOf {
-                val chip = chipBoundsInScreen
-                val popup = popupBoundsInScreen
-                if (chip == null || popup == null || popup.width <= 0f || popup.height <= 0f) {
-                    Offset(0.4f, 0.4f)
-                } else {
-                    Offset(
-                        x = (chip.width / popup.width).coerceIn(0.2f, 1f),
-                        y = (chip.height / popup.height).coerceIn(0.15f, 1f),
-                    )
-                }
-            }
-        }
-
-        val scaleX = remember { Animatable(initialScaleFromChip.x) }
-        val scaleY = remember { Animatable(initialScaleFromChip.y) }
-        val alpha = remember { Animatable(0f) }
-        val translationY = remember { Animatable(-24f) }
-
-        LaunchedEffect(isVisible, popupBoundsInScreen != null) {
-            if (isVisible && popupBoundsInScreen != null) {
-                scaleX.snapTo(initialScaleFromChip.x)
-                scaleY.snapTo(initialScaleFromChip.y)
-                alpha.snapTo(0f)
-                translationY.snapTo(-24f)
-                coroutineScope {
-                    launch {
-                        scaleX.animateTo(
-                            targetValue = 1f,
-                            animationSpec =
-                                spring(
-                                    dampingRatio = 0.6f,
-                                    stiffness = Spring.StiffnessLow,
-                                ),
-                        )
-                    }
-                    launch {
-                        scaleY.animateTo(
-                            targetValue = 1f,
-                            animationSpec =
-                                spring(
-                                    dampingRatio = 0.65f,
-                                    stiffness = Spring.StiffnessLow,
-                                ),
-                        )
-                    }
-                    launch {
-                        translationY.animateTo(
-                            targetValue = 0f,
-                            animationSpec =
-                                spring(
-                                    dampingRatio = 0.7f,
-                                    stiffness = Spring.StiffnessMediumLow,
-                                ),
-                        )
-                    }
-                    launch { alpha.animateTo(1f, animationSpec = tween(180)) }
-                }
-            } else if (!isVisible) {
-                coroutineScope {
-                    launch {
-                        scaleX.animateTo(
-                            targetValue = initialScaleFromChip.x,
-                            animationSpec =
-                                spring(
-                                    dampingRatio = 0.8f,
-                                    stiffness = Spring.StiffnessMediumLow,
-                                ),
-                        )
-                    }
-                    launch {
-                        scaleY.animateTo(
-                            targetValue = initialScaleFromChip.y,
-                            animationSpec =
-                                spring(
-                                    dampingRatio = 0.8f,
-                                    stiffness = Spring.StiffnessMediumLow,
-                                ),
-                        )
-                    }
-                    launch {
-                        translationY.animateTo(-16f, animationSpec = spring(stiffness = Spring.StiffnessMedium))
-                    }
-                    launch { alpha.animateTo(0f, animationSpec = tween(160)) }
-                }
-            }
-        }
-
->>>>>>> 800b4e8b4aec (SystemUI: DynamicIsland: Rework popup animation)
         DisposableEffect(popupView) {
             val listener = ViewTreeObserver.OnWindowFocusChangeListener { hasFocus ->
                 if (!hasFocus) {
@@ -232,24 +125,6 @@ fun StatusBarPopup(
 
         AnimatedVisibility(
             visible = isVisible,
-<<<<<<< HEAD
-            enter =
-                fadeIn(animationSpec = tween(180)) +
-                    scaleIn(initialScale = 0.9f, animationSpec = tween(220)) +
-                    slideInVertically(
-                        initialOffsetY = { fullHeight -> -fullHeight / 6 },
-                        animationSpec = tween(220),
-                    ),
-            exit =
-                fadeOut(animationSpec = tween(160)) +
-                    scaleOut(targetScale = 0.92f, animationSpec = tween(180)) +
-                    slideOutVertically(
-                        targetOffsetY = { fullHeight -> -fullHeight / 8 },
-                        animationSpec = tween(180),
-                    ),
-        ) {
-            Box(modifier = Modifier.padding(8.dp).wrapContentSize()) {
-=======
             enter = fadeIn(animationSpec = tween(60)),
             exit = fadeOut(animationSpec = tween(160)),
         ) {
@@ -268,7 +143,13 @@ fun StatusBarPopup(
                             this.transformOrigin = transformOrigin
                         }
             ) {
->>>>>>> 800b4e8b4aec (SystemUI: DynamicIsland: Rework popup animation)
+=======
+            Box(
+                modifier =
+                    Modifier.padding(8.dp).wrapContentSize().onGloballyPositioned { coordinates ->
+                        popupBoundsInScreen = coordinates.boundsInScreen(popupView)
+                    }
+            ) {
                 when (val popupContent = viewModel.popupContent) {
                     is PopupContentModel.Media -> MediaControlPopup(model = popupContent.model)
                     is PopupContentModel.Media -> {
@@ -303,4 +184,10 @@ fun StatusBarPopup(
             }
         }
     }
+}
+
+private fun LayoutCoordinates.boundsInScreen(view: android.view.View): Rect {
+    val location = IntArray(2)
+    view.getLocationOnScreen(location)
+    return boundsInRoot().translate(Offset(location[0].toFloat(), location[1].toFloat()))
 }

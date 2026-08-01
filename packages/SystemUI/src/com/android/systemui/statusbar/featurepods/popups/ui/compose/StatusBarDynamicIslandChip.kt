@@ -17,7 +17,6 @@
 package com.android.systemui.statusbar.featurepods.popups.ui.compose
 
 import android.view.DisplayCutout
-import android.view.HapticFeedbackConstants
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.keyframes
@@ -39,7 +38,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,15 +48,14 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
-<<<<<<< HEAD
 =======
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.boundsInRoot
-import androidx.compose.ui.platform.LocalContext
->>>>>>> 0a42ae052d84 (SystemUI: DynamicIsland: Allow adjust height and width [1/2])
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
@@ -72,6 +69,10 @@ import com.android.systemui.statusbar.featurepods.popups.shared.DynamicIslandFea
 import com.android.systemui.statusbar.featurepods.popups.ui.model.PopupChipModel
 import com.android.systemui.statusbar.featurepods.popups.ui.model.PopupContentModel
 import com.android.systemui.statusbar.featurepods.screenrecord.shared.model.ScreenRecordPopupModel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.launch
 
 /** Single centered status bar capsule styled like a compact dynamic island. */
 @Composable
@@ -81,6 +82,7 @@ fun StatusBarDynamicIslandChip(
     cutoutSpec: DynamicIslandCutoutSpec,
     onTap: () -> Unit,
     modifier: Modifier = Modifier,
+    onChipBoundsChanged: (Rect) -> Unit = {},
 ) {
     val isMediaChip = viewModel.popupContent is PopupContentModel.Media
     val chipShape = RoundedCornerShape(50)
@@ -102,18 +104,12 @@ fun StatusBarDynamicIslandChip(
             isPopupShown = viewModel.isPopupShown,
             colorScheme = MaterialTheme.colorScheme,
         )
-<<<<<<< HEAD
 =======
     val view = LocalView.current
     val boundsModifier =
         Modifier.onGloballyPositioned { coordinates ->
             onChipBoundsChanged(coordinates.boundsInScreen(view))
         }
-    val hapticOnTap: () -> Unit = {
-        view.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
-        onTap()
-    }
->>>>>>> c08895eb3ac6 (SystemUI: DynamicIsland: Add haptic feedback on chip click)
     if (viewModel.popupContent.isUtilityStatusContent() && viewModel.icons.isNotEmpty()) {
         UtilityStatusIslandChip(
             viewModel = viewModel,
@@ -126,7 +122,7 @@ fun StatusBarDynamicIslandChip(
             heightScale = heightScale,
             chipContentColor = chipContentColor,
             chipOutline = chipOutline,
-            modifier = modifier,
+            modifier = modifier.then(boundsModifier),
         )
         return
     }
@@ -160,13 +156,13 @@ fun StatusBarDynamicIslandChip(
     Row(
         modifier =
             modifier
-<<<<<<< HEAD
+                .then(boundsModifier)
+                .openSquishAnimation(viewModel.isPopupShown)
                 .defaultMinSize(minHeight = 32.dp)
 =======
                 .then(boundsModifier)
                 .openSquishAnimation(viewModel.isPopupShown)
                 .defaultMinSize(minHeight = 32.dp * heightScale)
->>>>>>> 0a42ae052d84 (SystemUI: DynamicIsland: Allow adjust height and width [1/2])
                 .widthIn(
                     min = compactWidth ?: 0.dp,
                     max = compactWidth ?: (CompactIslandMaxWidth * widthScale),
@@ -174,17 +170,10 @@ fun StatusBarDynamicIslandChip(
                 .clip(chipShape)
                 .background(Color.Black)
                 .border(width = 1.dp, color = chipOutline, shape = chipShape)
-<<<<<<< HEAD
-                .clickable(onClick = onTap)
-<<<<<<< HEAD
-                .padding(horizontal = 12.dp, vertical = 7.dp),
-=======
                 .clickable(onClick = hapticOnTap)
                 .padding(horizontal = 12.dp * widthScale, vertical = 7.dp * heightScale),
->>>>>>> c08895eb3ac6 (SystemUI: DynamicIsland: Add haptic feedback on chip click)
 =======
                 .padding(horizontal = 12.dp * widthScale, vertical = 7.dp * heightScale),
->>>>>>> 0a42ae052d84 (SystemUI: DynamicIsland: Allow adjust height and width [1/2])
         horizontalArrangement =
             if (isMediaChip) Arrangement.SpaceBetween else Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -281,17 +270,12 @@ private fun UtilityStatusIslandChip(
     viewModel: PopupChipModel.Shown,
     onTap: () -> Unit,
     cutoutSpec: DynamicIslandCutoutSpec,
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
     widthScale: Float = 1f,
     heightScale: Float = 1f,
->>>>>>> 0a42ae052d84 (SystemUI: DynamicIsland: Allow adjust height and width [1/2])
     chipBackgroundColor: Color,
 =======
     widthScale: Float = 1f,
     heightScale: Float = 1f,
->>>>>>> 3cec2a9a4b4c (SystemUI: DynamicIsland: Make chip bg solid black)
     chipContentColor: Color,
     chipOutline: Color,
     modifier: Modifier = Modifier,
@@ -329,12 +313,11 @@ private fun UtilityStatusIslandChip(
     Row(
         modifier =
             modifier
-<<<<<<< HEAD
+                .openSquishAnimation(viewModel.isPopupShown)
                 .defaultMinSize(minHeight = 32.dp)
 =======
                 .openSquishAnimation(viewModel.isPopupShown)
                 .defaultMinSize(minHeight = 32.dp * heightScale)
->>>>>>> 0a42ae052d84 (SystemUI: DynamicIsland: Allow adjust height and width [1/2])
                 .width(connectedIslandWidth)
                 .clip(RoundedCornerShape(50))
                 .background(Color.Black)
@@ -490,8 +473,6 @@ private fun compactIslandWidthFor(content: PopupContentModel): Dp? {
         else -> null
     }
 }
-<<<<<<< HEAD
-=======
 
 @Composable
 private fun rememberDynamicIslandSizeScale(): Pair<Float, Float> {
@@ -504,6 +485,7 @@ private fun rememberDynamicIslandSizeScale(): Pair<Float, Float> {
             .collectAsState(initial = 1f)
     return widthScale to heightScale
 }
+=======
 
 @Composable
 private fun Modifier.openSquishAnimation(isOpen: Boolean): Modifier {
@@ -558,4 +540,3 @@ private fun LayoutCoordinates.boundsInScreen(view: android.view.View): Rect {
     view.getLocationOnScreen(location)
     return boundsInRoot().translate(Offset(location[0].toFloat(), location[1].toFloat()))
 }
->>>>>>> 0a42ae052d84 (SystemUI: DynamicIsland: Allow adjust height and width [1/2])
