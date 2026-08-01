@@ -163,6 +163,21 @@ constructor(
             }
             .stateIn(backgroundScope, SharingStarted.WhileSubscribed(), null)
 
+    val mediaUseWaveform: StateFlow<Boolean> =
+        observeDynamicIslandFeatureEnabled(context, Settings.System.MEDIA_WAVEFORM_SEEKBAR, false)
+            .stateIn(backgroundScope, SharingStarted.WhileSubscribed(), false)
+
+    /** The currently active [MediaControlChipModel] */
+    val mediaControlChipModel: StateFlow<MediaControlChipModel?> =
+        combine(
+            baseMediaControlChipModel,
+            currentLyrics,
+            currentSyncedLyrics,
+        ) { baseModel, lyrics, syncedLyrics ->
+            baseModel?.copy(lyrics = lyrics, syncedLyrics = syncedLyrics)
+        }
+        .stateIn(backgroundScope, SharingStarted.WhileSubscribed(), null)
+
     /** Initializes setting observation. This must be called from a CoreStartable. */
     fun initialize() {
         if (isInitialized) {
