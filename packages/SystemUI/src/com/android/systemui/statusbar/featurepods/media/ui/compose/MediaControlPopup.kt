@@ -22,6 +22,9 @@ import android.text.format.DateUtils
 import android.widget.SeekBar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -90,7 +93,11 @@ fun MediaControlPopup(
         ) {
             Row(
                 modifier =
-                    Modifier.fillMaxWidth().clickable(enabled = model.openApp != null) {
+                    Modifier.fillMaxWidth().clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        enabled = model.openApp != null,
+                    ) {
                         model.openApp?.invoke()
                     },
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
