@@ -17,6 +17,10 @@
 package com.android.systemui.statusbar.featurepods.popups.ui.compose
 
 import android.view.DisplayCutout
+import android.view.HapticFeedbackConstants
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.keyframes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -79,10 +83,22 @@ fun StatusBarDynamicIslandChip(
             isPopupShown = viewModel.isPopupShown,
             colorScheme = MaterialTheme.colorScheme,
         )
+<<<<<<< HEAD
+=======
+    val view = LocalView.current
+    val boundsModifier =
+        Modifier.onGloballyPositioned { coordinates ->
+            onChipBoundsChanged(coordinates.boundsInScreen(view))
+        }
+    val hapticOnTap: () -> Unit = {
+        view.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK)
+        onTap()
+    }
+>>>>>>> c08895eb3ac6 (SystemUI: DynamicIsland: Add haptic feedback on chip click)
     if (viewModel.popupContent.isUtilityStatusContent() && viewModel.icons.isNotEmpty()) {
         UtilityStatusIslandChip(
             viewModel = viewModel,
-            onTap = onTap,
+            onTap = hapticOnTap,
             cutoutSpec = cutoutSpec,
             chipBackgroundColor = chipBackgroundColor,
             widthScale = widthScale,
@@ -131,8 +147,13 @@ fun StatusBarDynamicIslandChip(
                 .clip(chipShape)
                 .background(Color.Black)
                 .border(width = 1.dp, color = chipOutline, shape = chipShape)
+<<<<<<< HEAD
                 .clickable(onClick = onTap)
                 .padding(horizontal = 12.dp, vertical = 7.dp),
+=======
+                .clickable(onClick = hapticOnTap)
+                .padding(horizontal = 12.dp * widthScale, vertical = 7.dp * heightScale),
+>>>>>>> c08895eb3ac6 (SystemUI: DynamicIsland: Add haptic feedback on chip click)
         horizontalArrangement =
             if (isMediaChip) Arrangement.SpaceBetween else Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
