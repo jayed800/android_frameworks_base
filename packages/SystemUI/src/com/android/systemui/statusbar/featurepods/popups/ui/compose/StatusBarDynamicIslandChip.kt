@@ -67,6 +67,7 @@ fun StatusBarDynamicIslandChip(
             isPopupShown = viewModel.isPopupShown,
             colorScheme = MaterialTheme.colorScheme,
         )
+    val (widthScale, heightScale) = rememberDynamicIslandSizeScale()
     val chipContentColor =
         colors.chipContent(
             isPopupShown = viewModel.isPopupShown,
@@ -83,6 +84,8 @@ fun StatusBarDynamicIslandChip(
             onTap = onTap,
             cutoutSpec = cutoutSpec,
             chipBackgroundColor = chipBackgroundColor,
+            widthScale = widthScale,
+            heightScale = heightScale,
             chipContentColor = chipContentColor,
             chipOutline = chipOutline,
             modifier = modifier,
@@ -125,7 +128,7 @@ fun StatusBarDynamicIslandChip(
                     max = compactWidth ?: CompactIslandMaxWidth,
                 )
                 .clip(chipShape)
-                .background(chipBackgroundColor)
+                .background(Color.Black)
                 .border(width = 1.dp, color = chipOutline, shape = chipShape)
                 .clickable(onClick = onTap)
                 .padding(horizontal = 12.dp, vertical = 7.dp),
@@ -220,7 +223,12 @@ private fun UtilityStatusIslandChip(
     viewModel: PopupChipModel.Shown,
     onTap: () -> Unit,
     cutoutSpec: DynamicIslandCutoutSpec,
+<<<<<<< HEAD
     chipBackgroundColor: Color,
+=======
+    widthScale: Float = 1f,
+    heightScale: Float = 1f,
+>>>>>>> 3cec2a9a4b4c (SystemUI: DynamicIsland: Make chip bg solid black)
     chipContentColor: Color,
     chipOutline: Color,
     modifier: Modifier = Modifier,
@@ -261,7 +269,7 @@ private fun UtilityStatusIslandChip(
                 .defaultMinSize(minHeight = 32.dp)
                 .width(connectedIslandWidth)
                 .clip(RoundedCornerShape(50))
-                .background(chipBackgroundColor)
+                .background(Color.Black)
                 .border(width = 1.dp, color = chipOutline, shape = RoundedCornerShape(50))
                 .clickable(onClick = onTap),
         horizontalArrangement = Arrangement.spacedBy(0.dp),
