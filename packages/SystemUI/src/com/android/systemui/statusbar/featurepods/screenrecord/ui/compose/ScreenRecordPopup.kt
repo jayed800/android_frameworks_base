@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -40,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import com.android.systemui.res.R
 import com.android.systemui.statusbar.featurepods.popups.ui.compose.rememberElapsedDurationText
+import com.android.systemui.statusbar.featurepods.popups.ui.compose.PopupSurface
 import com.android.systemui.statusbar.featurepods.screenrecord.shared.model.ScreenRecordPopupModel
 
 private val PopupShape = RoundedCornerShape(32.dp)
@@ -54,8 +54,8 @@ fun ScreenRecordPopup(
     Surface(
         color = Color(0xF21A1A1A),
         contentColor = Color.White,
+    PopupSurface(
         shape = PopupShape,
-        shadowElevation = 12.dp,
         modifier = modifier.widthIn(min = 280.dp, max = 360.dp),
     ) {
         Column(

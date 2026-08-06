@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -43,6 +42,7 @@ import com.android.systemui.res.R
 import com.android.systemui.statusbar.featurepods.flashlight.shared.model.FlashlightPopupModel
 import com.android.systemui.statusbar.featurepods.popups.shared.model.PopupActionModel
 import com.android.systemui.statusbar.featurepods.popups.ui.compose.PopupActionChips
+import com.android.systemui.statusbar.featurepods.popups.ui.compose.PopupSurface
 
 private val PopupShape = RoundedCornerShape(32.dp)
 private val AccentColor = Color(0xFFFFD166)
@@ -56,8 +56,8 @@ fun FlashlightPopup(
     Surface(
         color = Color(0xF21A1A1A),
         contentColor = Color.White,
+    PopupSurface(
         shape = PopupShape,
-        shadowElevation = 12.dp,
         modifier = modifier.widthIn(min = 280.dp, max = 340.dp),
     ) {
         Column(
