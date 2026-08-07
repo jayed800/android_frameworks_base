@@ -356,6 +356,7 @@ private fun MediaProgressSection(
                             max = durationMs.toClampedInt()
                             splitTrack = false
                             setPadding(0, 0, 0, 0)
+                            isEnabled = false
                             thumb = createSeekBarThumb(context, accentArgb)
                             thumbOffset = thumb.intrinsicWidth / 2
 
