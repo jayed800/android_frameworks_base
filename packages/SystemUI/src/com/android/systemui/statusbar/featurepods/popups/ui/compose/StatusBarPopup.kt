@@ -65,6 +65,7 @@ import com.android.systemui.statusbar.featurepods.screenrecord.ui.compose.Screen
 import com.android.systemui.statusbar.featurepods.sharescreen.ui.compose.ShareScreenPrivacyIndicatorPopup
 import com.android.systemui.statusbar.featurepods.stopwatch.ui.compose.StopwatchPopup
 import kotlinx.coroutines.coroutineScope
+import com.android.systemui.statusbar.featurepods.popups.shared.DynamicIslandFeatureSettings.POPUP_COLOR_MODE_BLUR
 import kotlinx.coroutines.launch
 
 /**
@@ -112,6 +113,116 @@ fun StatusBarPopup(
                 }
             }
         }
+
+        val initialScaleFromChip by remember {
+            derivedStateOf {
+                val chip = chipBoundsInScreen
+                val popup = popupBoundsInScreen
+                if (chip == null || popup == null || popup.width <= 0f || popup.height <= 0f) {
+                    Offset(0.4f, 0.4f)
+                } else {
+                    Offset(
+                        x = (chip.width / popup.width).coerceIn(0.2f, 1f),
+                        y = (chip.height / popup.height).coerceIn(0.15f, 1f),
+                    )
+                }
+            }
+        }
+
+        val scaleX = remember { Animatable(initialScaleFromChip.x) }
+        val scaleY = remember { Animatable(initialScaleFromChip.y) }
+        val alpha = remember { Animatable(0f) }
+        val translationY = remember { Animatable(-24f) }
+        val colorMode = rememberPopupColorMode()
+        val skipMotionOnDismiss = colorMode == POPUP_COLOR_MODE_BLUR
+
+        LaunchedEffect(isVisible, popupBoundsInScreen != null) {
+            if (isVisible && popupBoundsInScreen != null) {
+                scaleX.snapTo(initialScaleFromChip.x)
+                scaleY.snapTo(initialScaleFromChip.y)
+                alpha.snapTo(0f)
+                translationY.snapTo(-24f)
+                coroutineScope {
+                    launch {
+                        scaleX.animateTo(
+                            targetValue = 1f,
+                            animationSpec =
+                                spring(
+                                    dampingRatio = 0.6f,
+                                    stiffness = Spring.StiffnessLow,
+                                ),
+                        )
+                    }
+                    launch {
+                        scaleY.animateTo(
+                            targetValue = 1f,
+                            animationSpec =
+                                spring(
+                                    dampingRatio = 0.65f,
+                                    stiffness = Spring.StiffnessLow,
+                                ),
+                        )
+                    }
+                    launch {
+                        translationY.animateTo(
+                            targetValue = 0f,
+                            animationSpec =
+                                spring(
+                                    dampingRatio = 0.7f,
+                                    stiffness = Spring.StiffnessMediumLow,
+                                ),
+                        )
+                    }
+                    launch { alpha.animateTo(1f, animationSpec = tween(180)) }
+                }
+            } else if (!isVisible) {
+                if (skipMotionOnDismiss) {
+                    coroutineScope {
+                        launch {
+                            scaleX.animateTo(
+                                targetValue = 0.01f,
+                                animationSpec = tween(130),
+                            )
+                        }
+                        launch {
+                            scaleY.animateTo(
+                                targetValue = 0.01f,
+                                animationSpec = tween(130),
+                            )
+                        }
+                        launch { alpha.animateTo(0f, animationSpec = tween(120)) }
+                    }
+                } else {
+                    coroutineScope {
+                        launch {
+                            scaleX.animateTo(
+                                targetValue = initialScaleFromChip.x,
+                                animationSpec =
+                                    spring(
+                                        dampingRatio = 0.8f,
+                                        stiffness = Spring.StiffnessMediumLow,
+                                    ),
+                            )
+                        }
+                        launch {
+                            scaleY.animateTo(
+                                targetValue = initialScaleFromChip.y,
+                                animationSpec =
+                                    spring(
+                                        dampingRatio = 0.8f,
+                                        stiffness = Spring.StiffnessMediumLow,
+                                    ),
+                            )
+                        }
+                        launch {
+                            translationY.animateTo(-16f, animationSpec = spring(stiffness = Spring.StiffnessMedium))
+                        }
+                        launch { alpha.animateTo(0f, animationSpec = tween(160)) }
+                    }
+                }
+            }
+        }
+
         DisposableEffect(popupView) {
             val listener = ViewTreeObserver.OnWindowFocusChangeListener { hasFocus ->
                 if (!hasFocus) {
