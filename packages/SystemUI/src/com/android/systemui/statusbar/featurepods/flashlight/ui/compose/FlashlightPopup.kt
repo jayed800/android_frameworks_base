@@ -53,9 +53,6 @@ fun FlashlightPopup(
     model: FlashlightPopupModel,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        color = Color(0xF21A1A1A),
-        contentColor = Color.White,
     PopupSurface(
         shape = PopupShape,
         modifier = modifier.widthIn(min = 280.dp, max = 340.dp),

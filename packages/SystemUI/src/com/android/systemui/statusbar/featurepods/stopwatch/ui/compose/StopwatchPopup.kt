@@ -50,9 +50,6 @@ fun StopwatchPopup(
     modifier: Modifier = Modifier,
 ) {
     val accent = MaterialTheme.colorScheme.primary
-    Surface(
-        color = Color(0xF21A1A1A),
-        contentColor = Color.White,
     PopupSurface(
         shape = PopupShape,
         modifier = modifier

@@ -51,9 +51,6 @@ fun ScreenRecordPopup(
     modifier: Modifier = Modifier,
 ) {
     val accent = Color(0xFFFF5A5F)
-    Surface(
-        color = Color(0xF21A1A1A),
-        contentColor = Color.White,
     PopupSurface(
         shape = PopupShape,
         modifier = modifier.widthIn(min = 280.dp, max = 360.dp),

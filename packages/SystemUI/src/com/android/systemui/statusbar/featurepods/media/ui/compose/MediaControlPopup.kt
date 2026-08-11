@@ -41,6 +41,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,10 +59,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.graphicsLayer
-<<<<<<< HEAD
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-=======
->>>>>>> 00ce93bd92b7 (SystemUI: DynamicIsland: Media popup seekbar follow system seekbar)
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -96,9 +94,6 @@ fun MediaControlPopup(
     modifier: Modifier = Modifier,
 ) {
     val accent = MaterialTheme.colorScheme.primary
-    Surface(
-        color = Color(0xF21A1A1A),
-        contentColor = Color.White,
     PopupSurface(
         shape = PopupShape,
         modifier = modifier.widthIn(min = 320.dp, max = 400.dp),
@@ -258,172 +253,8 @@ private fun MediaProgressSection(
         }
     }
 
-<<<<<<< HEAD
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text(
-                text = formatElapsedTime(displayedPositionMs),
-                style = MaterialTheme.typography.labelMedium,
-                color = Color.White.copy(alpha = 0.60f),
-            )
-            Text(
-                text = formatElapsedTime(durationMs),
-                style = MaterialTheme.typography.labelMedium,
-                color = Color.White.copy(alpha = 0.60f),
-            )
     val accentArgb = accent.toArgb()
     val trackAlphaArgb = accent.copy(alpha = 0.20f).toArgb()
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text(
-            text = formatElapsedTime(displayedPositionMs),
-            style = MaterialTheme.typography.labelMedium,
-            color = LocalContentColor.current.copy(alpha = 0.60f),
-        )
-
-        Box(modifier = Modifier.weight(1f).height(28.dp)) {
-            var boxWidthPx by remember { mutableStateOf(0) }
-
-            fun applyFraction(fraction: Float) {
-                displayedPositionMs = (fraction.coerceIn(0f, 1f) * durationMs).toLong()
-            }
-            val gestureModifier = Modifier
-                .onSizeChanged { boxWidthPx = it.width }
-                .pointerInput(canBeScrubbed, durationMs) {
-                    if (!canBeScrubbed) return@pointerInput
-                    detectTapGestures { offset ->
-                        applyFraction(offset.x / boxWidthPx.coerceAtLeast(1).toFloat())
-                        currentSeekAction?.invoke(displayedPositionMs)
-                    }
-                }
-                .pointerInput(canBeScrubbed, durationMs) {
-                    if (!canBeScrubbed) return@pointerInput
-                    detectHorizontalDragGestures(
-                        onDragStart = { offset ->
-                            isScrubbing = true
-                            applyFraction(offset.x / boxWidthPx.coerceAtLeast(1).toFloat())
-                        },
-                        onDragEnd = {
-                            currentSeekAction?.invoke(displayedPositionMs)
-                            isScrubbing = false
-                        },
-                        onDragCancel = { isScrubbing = false },
-                        onHorizontalDrag = { change, _ ->
-                            applyFraction(change.position.x / boxWidthPx.coerceAtLeast(1).toFloat())
-                            change.consume()
-                        },
-                    )
-                }
-
-            if (useWaveform) {
-                AndroidView(
-                    modifier = Modifier.fillMaxWidth().height(28.dp).then(gestureModifier),
-                    factory = { context ->
-                        WaveformSeekBar(context).apply {
-                            max = 10_000
-                            followsMediaColors = false
-                            setWaveformColor(accentArgb)
-                            setThumbColor(accentArgb)
-                            isEnabled = false
-                        }
-                    },
-                    update = { bar ->
-                        bar.setWaveformColor(accentArgb)
-                        bar.setThumbColor(accentArgb)
-                        val target = if (durationMs > 0L) {
-                            ((displayedPositionMs.toFloat() / durationMs) * 10_000f)
-                                .toInt().coerceIn(0, 10_000)
-                        } else 0
-                        if (bar.progress != target) bar.progress = target
-                        when {
-                            isPlaying && !bar.isPlaying -> bar.startWaveAnimation()
-                            !isPlaying && bar.isPlaying -> bar.stopWaveAnimation()
-                        }
-                    },
-                )
-            } else {
-                AndroidView(
-                    modifier = Modifier.fillMaxWidth().height(28.dp).then(gestureModifier),
-                    factory = { context ->
-                        SeekBar(context).apply {
-                            max = durationMs.toClampedInt()
-                            splitTrack = false
-                            setPadding(0, 0, 0, 0)
-                            isEnabled = false
-                            thumb = createSeekBarThumb(context, accentArgb)
-                            thumbOffset = thumb.intrinsicWidth / 2
-
-                            val layer = progressDrawable?.mutate() as? LayerDrawable
-                            if (layer != null) {
-                                layer.findDrawableByLayerId(android.R.id.background)
-                                    ?.mutate()?.setTint(trackAlphaArgb)
-                                layer.findDrawableByLayerId(android.R.id.secondaryProgress)
-                                    ?.mutate()?.setTint(
-                                        com.android.internal.graphics.ColorUtils
-                                            .setAlphaComponent(accentArgb, 60)
-                                    )
-                                val squiggle = SquigglyProgress().apply {
-                                    waveLength = context.resources.getDimensionPixelSize(
-                                        R.dimen.qs_media_seekbar_progress_wavelength
-                                    ).toFloat()
-                                    lineAmplitude = context.resources.getDimensionPixelSize(
-                                        R.dimen.qs_media_seekbar_progress_amplitude
-                                    ).toFloat()
-                                    phaseSpeed = context.resources.getDimensionPixelSize(
-                                        R.dimen.qs_media_seekbar_progress_phase
-                                    ).toFloat()
-                                    strokeWidth = context.resources.getDimensionPixelSize(
-                                        R.dimen.qs_media_seekbar_progress_stroke_width
-                                    ).toFloat()
-                                    setTint(accentArgb)
-                                    drawRemainingLine = false
-                                    transitionEnabled = true
-                                    animate = false
-                                }
-                                layer.setDrawableByLayerId(android.R.id.progress, squiggle)
-                                progressDrawable = layer
-                            }
-                        }
-                    },
-                    update = { seekBar ->
-                        seekBar.max = durationMs.toClampedInt().coerceAtLeast(1)
-                        seekBar.thumb?.alpha = if (canBeScrubbed) 255 else 120
-                        if (!isScrubbing) {
-                            seekBar.progress = displayedPositionMs.coerceIn(0L, durationMs).toClampedInt()
-                        }
-
-                        (seekBar.thumb as? GradientDrawable)?.setColor(accentArgb)
-
-                        val layer = seekBar.progressDrawable as? LayerDrawable
-                        layer?.findDrawableByLayerId(android.R.id.background)
-                            ?.setTint(trackAlphaArgb)
-                        layer?.findDrawableByLayerId(android.R.id.secondaryProgress)
-                            ?.setTint(
-                                com.android.internal.graphics.ColorUtils
-                                    .setAlphaComponent(accentArgb, 60)
-                            )
-                        val squiggle =
-                            layer?.findDrawableByLayerId(android.R.id.progress) as? SquigglyProgress
-                        squiggle?.apply {
-                            setTint(accentArgb)
-                            setAlpha(if (canBeScrubbed) 255 else 120)
-                            animate = isPlaying && canBeScrubbed && !isScrubbing
-                        }
-                    },
-                )
-            }
-        }
-=======
-    val accentArgb = accent.toArgb()
-    val trackAlphaArgb = accent.copy(alpha = 0.20f).toArgb()
->>>>>>> 00ce93bd92b7 (SystemUI: DynamicIsland: Media popup seekbar follow system seekbar)
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -588,15 +419,8 @@ private fun MediaActionButton(
         return
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
     var toggleCount by remember { mutableIntStateOf(0) }
     val haptics = LocalHapticFeedback.current
->>>>>>> f925c7b869ee (SystemUI: DynamicIsland: Add haptic feedback to media popup control buttons)
-=======
-    var toggleCount by remember { mutableIntStateOf(0) }
->>>>>>> 00ce93bd92b7 (SystemUI: DynamicIsland: Media popup seekbar follow system seekbar)
     val contentDescription =
         action.contentDescription?.toString()?.let { ContentDescription.Loaded(it) }
     Box(
@@ -605,22 +429,11 @@ private fun MediaActionButton(
                 .size(buttonSize)
                 .clip(CircleShape)
                 .background(containerColor)
-<<<<<<< HEAD
-<<<<<<< HEAD
-                .clickable(enabled = action.action != null) { action.action?.run() },
-=======
                 .clickable(enabled = action.action != null) {
                     haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     action.action?.run()
                     toggleCount++
                 },
->>>>>>> f925c7b869ee (SystemUI: DynamicIsland: Add haptic feedback to media popup control buttons)
-=======
-                .clickable(enabled = action.action != null) {
-                    action.action?.run()
-                    toggleCount++
-                },
->>>>>>> 00ce93bd92b7 (SystemUI: DynamicIsland: Media popup seekbar follow system seekbar)
         contentAlignment = Alignment.Center,
     ) {
         val actualIcon = if (iconOverrideId != null) {

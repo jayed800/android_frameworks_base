@@ -18,6 +18,7 @@ package com.android.systemui.statusbar.featurepods.popups.ui.compose
 
 import android.view.ViewTreeObserver
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.Spring
@@ -30,6 +31,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.boundsInRoot
@@ -97,9 +100,6 @@ fun StatusBarPopup(
         onDismissRequest = { viewModel.hidePopup() },
     ) {
         val popupView = LocalView.current
-        var popupBoundsInScreen by remember { mutableStateOf<Rect?>(null) }
-
-=======
         var popupBoundsInScreen by remember { mutableStateOf<Rect?>(null) }
         val transformOrigin by remember {
             derivedStateOf {
@@ -254,13 +254,6 @@ fun StatusBarPopup(
                             this.translationY = translationY.value
                             this.transformOrigin = transformOrigin
                         }
-            ) {
-=======
-            Box(
-                modifier =
-                    Modifier.padding(8.dp).wrapContentSize().onGloballyPositioned { coordinates ->
-                        popupBoundsInScreen = coordinates.boundsInScreen(popupView)
-                    }
             ) {
                 when (val popupContent = viewModel.popupContent) {
                     is PopupContentModel.Media -> {

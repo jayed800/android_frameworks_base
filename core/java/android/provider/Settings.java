@@ -7636,6 +7636,36 @@ public final class Settings {
         public static final String STATUS_BAR_DYNAMIC_ISLAND_LYRICS = "status_bar_dynamic_island_lyrics";
 
         /**
+         * @hide
+         */
+        public static final String STATUS_BAR_DYNAMIC_ISLAND_ALARMS = "status_bar_dynamic_island_alarms";
+
+        /**
+         * @hide
+         */
+        public static final String MEDIA_WAVEFORM_SEEKBAR = "media_waveform_seekbar";
+
+        /**
+         * @hide
+         */
+        public static final String STATUSBAR_CLOCK_CHIP_GRADIENT_START_COLOR = "statusbar_clock_chip_gradient_start_color";
+
+        /**
+         * @hide
+         */
+        public static final String STATUSBAR_CLOCK_CHIP_GRADIENT_END_COLOR = "statusbar_clock_chip_gradient_end_color";
+
+        /**
+         * @hide
+         */
+        public static final String STATUSBAR_CLOCK_CHIP_GRADIENT_ANGLE = "statusbar_clock_chip_gradient_angle";
+
+        /**
+         * @hide
+         */
+        public static final String STATUSBAR_CLOCK_CHIP_GRADIENT_MASK_TEXT = "statusbar_clock_chip_gradient_mask_text";
+
+        /**
          * Keys we no longer back up under the current schema, but want to continue to
          * process when restoring historical backup datasets.
          *

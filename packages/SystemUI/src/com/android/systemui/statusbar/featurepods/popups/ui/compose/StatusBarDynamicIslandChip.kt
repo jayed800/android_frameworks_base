@@ -17,6 +17,7 @@
 package com.android.systemui.statusbar.featurepods.popups.ui.compose
 
 import android.view.DisplayCutout
+import android.view.HapticFeedbackConstants
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.keyframes
@@ -41,6 +42,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,11 +55,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
-=======
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
@@ -91,12 +93,6 @@ fun StatusBarDynamicIslandChip(
     val chipShape = RoundedCornerShape(50)
     val colors = viewModel.colors
     val (widthScale, heightScale) = rememberDynamicIslandSizeScale()
-    val chipBackgroundColor =
-        colors.chipBackground(
-            isPopupShown = viewModel.isPopupShown,
-            colorScheme = MaterialTheme.colorScheme,
-        )
-    val (widthScale, heightScale) = rememberDynamicIslandSizeScale()
     val chipContentColor =
         colors.chipContent(
             isPopupShown = viewModel.isPopupShown,
@@ -107,7 +103,6 @@ fun StatusBarDynamicIslandChip(
             isPopupShown = viewModel.isPopupShown,
             colorScheme = MaterialTheme.colorScheme,
         )
-=======
     val view = LocalView.current
     val boundsModifier =
         Modifier.onGloballyPositioned { coordinates ->
@@ -131,9 +126,6 @@ fun StatusBarDynamicIslandChip(
             viewModel = viewModel,
             onTap = hapticOnTap,
             cutoutSpec = cutoutSpec,
-            widthScale = widthScale,
-            heightScale = heightScale,
-            chipBackgroundColor = chipBackgroundColor,
             widthScale = widthScale,
             heightScale = heightScale,
             chipContentColor = chipContentColor,
@@ -174,10 +166,6 @@ fun StatusBarDynamicIslandChip(
             modifier
                 .then(boundsModifier)
                 .openSquishAnimation(viewModel.isPopupShown)
-                .defaultMinSize(minHeight = 32.dp)
-=======
-                .then(boundsModifier)
-                .openSquishAnimation(viewModel.isPopupShown)
                 .defaultMinSize(minHeight = 32.dp * heightScale)
                 .widthIn(
                     min = compactWidth ?: 0.dp,
@@ -190,8 +178,6 @@ fun StatusBarDynamicIslandChip(
                     onClick = hapticOnTap,
                     onLongClick = mediaOpenApp?.let { { hapticOnLongPress() } },
                 )
-                .padding(horizontal = 12.dp * widthScale, vertical = 7.dp * heightScale),
-=======
                 .padding(horizontal = 12.dp * widthScale, vertical = 7.dp * heightScale),
         horizontalArrangement =
             if (isMediaChip) Arrangement.SpaceBetween else Arrangement.spacedBy(8.dp),
@@ -291,10 +277,6 @@ private fun UtilityStatusIslandChip(
     cutoutSpec: DynamicIslandCutoutSpec,
     widthScale: Float = 1f,
     heightScale: Float = 1f,
-    chipBackgroundColor: Color,
-=======
-    widthScale: Float = 1f,
-    heightScale: Float = 1f,
     chipContentColor: Color,
     chipOutline: Color,
     modifier: Modifier = Modifier,
@@ -332,9 +314,6 @@ private fun UtilityStatusIslandChip(
     Row(
         modifier =
             modifier
-                .openSquishAnimation(viewModel.isPopupShown)
-                .defaultMinSize(minHeight = 32.dp)
-=======
                 .openSquishAnimation(viewModel.isPopupShown)
                 .defaultMinSize(minHeight = 32.dp * heightScale)
                 .width(connectedIslandWidth)
@@ -504,7 +483,6 @@ private fun rememberDynamicIslandSizeScale(): Pair<Float, Float> {
             .collectAsState(initial = 1f)
     return widthScale to heightScale
 }
-=======
 
 @Composable
 private fun Modifier.openSquishAnimation(isOpen: Boolean): Modifier {
