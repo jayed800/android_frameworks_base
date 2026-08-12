@@ -132,6 +132,33 @@ sealed interface ColorsModel {
             Color.White.copy(alpha = 0.14f)
     }
 
+    /** Dynamic island styling for active phone calls with an iOS-style green accent. */
+    data object DynamicIslandCall : ColorsModel {
+        private val accent = Color(0xFF30D158)
+
+        @Composable
+        override fun chipBackground(isPopupShown: Boolean, colorScheme: ColorScheme): Color =
+            DynamicIsland.chipBackground(isPopupShown = isPopupShown, colorScheme = colorScheme)
+
+        @Composable
+        override fun chipContent(isPopupShown: Boolean, colorScheme: ColorScheme): Color = accent
+
+        @Composable
+        override fun chipOutline(isPopupShown: Boolean, colorScheme: ColorScheme): Color =
+            accent.copy(alpha = if (isPopupShown) 0.28f else 0.18f)
+
+        @Composable
+        override fun icon(
+            isPopupShown: Boolean,
+            isHovered: Boolean,
+            colorScheme: ColorScheme,
+        ): Color = accent
+
+        @Composable
+        override fun iconBackgroundOnHover(isPopupShown: Boolean, colorScheme: ColorScheme): Color =
+            accent.copy(alpha = 0.14f)
+    }
+
     /** Dynamic island styling for destructive or time-critical states like recording. */
     data object DynamicIslandAlert : ColorsModel {
         private val accent = Color(0xFFFF5A5F)

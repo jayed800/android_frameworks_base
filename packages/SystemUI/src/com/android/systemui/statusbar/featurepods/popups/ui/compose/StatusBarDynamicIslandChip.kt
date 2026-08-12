@@ -399,6 +399,8 @@ private val CompactTimerIslandWidth = 116.dp
 private val CompactRecordingIslandWidth = 88.dp
 private val CompactAlarmIslandWidth = 92.dp
 private val CompactUtilityIslandWidth = 74.dp
+private val CompactChargingIslandWidth = 94.dp
+private val CompactCallIslandWidth = 128.dp
 private val CompactUtilityConnectedIslandChromeWidth = 42.dp
 private val CompactUtilityConnectedIslandMinWidth = 132.dp
 private val CompactUtilityConnectedIslandMaxWidth = 188.dp
@@ -468,6 +470,8 @@ private fun compactIslandWidthFor(content: PopupContentModel): Dp? {
         is PopupContentModel.Stopwatch -> CompactTimerIslandWidth
         is PopupContentModel.Alarm -> CompactAlarmIslandWidth
         is PopupContentModel.Flashlight -> CompactUtilityIslandWidth
+        is PopupContentModel.Charging -> CompactChargingIslandWidth
+        is PopupContentModel.Call -> CompactCallIslandWidth
         else -> null
     }
 }

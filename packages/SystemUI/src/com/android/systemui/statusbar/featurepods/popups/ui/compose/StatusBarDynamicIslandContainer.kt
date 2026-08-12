@@ -17,13 +17,17 @@
 package com.android.systemui.statusbar.featurepods.popups.ui.compose
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -38,18 +42,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import com.android.systemui.statusbar.featurepods.popups.ui.model.PopupChipId
 import com.android.systemui.statusbar.featurepods.popups.ui.model.PopupChipModel
+import com.android.systemui.statusbar.featurepods.popups.ui.model.PopupContentModel
+import com.android.systemui.statusbar.featurepods.screenrecord.shared.model.ScreenRecordPopupModel
 import kotlinx.coroutines.delay
 import kotlin.math.abs
 
-/** Phone-only centered dynamic island that pages through active popup chips. */
+/**
+ * Phone-only centered dynamic island that pages through active popup chips.
+ *
+ * Chips are ordered by the [priority] of their event; time-critical events (calls, media) break
+ * into the island first. Transient events auto-collapse back to the compact pill after
+ * [AutoCollapseTimeoutMs] of inactivity.
+ */
 @Composable
 fun StatusBarDynamicIslandContainer(
     chips: List<PopupChipModel.Shown>,
@@ -66,18 +78,26 @@ fun StatusBarDynamicIslandContainer(
 
     LaunchedEffect(chips) {
         val currentChipIds = chips.map { it.chipId }
-        val newestChipId =
-            if (knownChipIds.isEmpty()) {
-                null
-            } else {
-                currentChipIds.lastOrNull { it !in knownChipIds }
-            }
+        val previousPriority = selectedChipId?.let { id -> chips.indexOfFirst { it.chipId == id } }
+        // The list is priority-ordered, so the first previously-unknown chip is the newest
+        // event. If it is more important than the currently selected chip, let it break in and
+        // expand with the iOS-style spring animation.
+        val newestChipId = currentChipIds.firstOrNull { it !in knownChipIds }
         selectedChipId =
             when {
+                newestChipId != null && previousPriority != null &&
+                    currentChipIds.indexOf(newestChipId) < previousPriority ->
+                    newestChipId
                 newestChipId != null -> newestChipId
                 chips.any { it.chipId == selectedChipId } -> selectedChipId
                 else -> chips.firstOrNull()?.chipId
             }
+        newestChipId?.let { id ->
+            chips.firstOrNull { it.chipId == id }?.let { chip ->
+                // New events expand automatically, like iOS Live Activities.
+                chip.showPopup()
+            }
+        }
         knownChipIds = currentChipIds
     }
 
@@ -94,6 +114,16 @@ fun StatusBarDynamicIslandContainer(
             popupVisible = false
             delay(220)
             popupAnchorChip = null
+        }
+    }
+
+    // Auto-collapse the expanded card back to the compact pill once the user stops interacting
+    // with transient events.
+    LaunchedEffect(selectedChipId, popupVisible) {
+        val chip = chips.firstOrNull { it.chipId == selectedChipId }
+        if (popupVisible && chip != null && chip.isAutoCollapsing()) {
+            delay(AutoCollapseTimeoutMs)
+            chips.firstOrNull { it.chipId == selectedChipId }?.hidePopup()
         }
     }
 
@@ -128,8 +158,8 @@ fun StatusBarDynamicIslandContainer(
             targetState = selectedChip.chipId,
             transitionSpec = {
                 if (targetState == initialState) {
-                    fadeIn(animationSpec = tween(150)) togetherWith
-                        fadeOut(animationSpec = tween(150))
+                    fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMedium)) togetherWith
+                        fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMedium))
                 } else {
                     val slideDirection =
                         if (
@@ -141,20 +171,56 @@ fun StatusBarDynamicIslandContainer(
                             -1
                         }
                     (slideInHorizontally(
-                        animationSpec = tween(220),
+                        animationSpec =
+                            spring(
+                                dampingRatio = Spring.DampingRatioNoBouncy,
+                                stiffness = Spring.StiffnessMedium,
+                            ),
                         initialOffsetX = { fullWidth -> slideDirection * fullWidth / 2 },
-                    ) + fadeIn(animationSpec = tween(180))) togetherWith
+                    ) + scaleIn(
+                        initialScale = 0.86f,
+                        animationSpec =
+                            spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessMedium,
+                            ),
+                    ) + fadeIn(
+                        animationSpec =
+                            spring(
+                                dampingRatio = Spring.DampingRatioNoBouncy,
+                                stiffness = Spring.StiffnessMedium,
+                            ),
+                    )) togetherWith
                         (slideOutHorizontally(
-                            animationSpec = tween(200),
+                            animationSpec =
+                                spring(
+                                    dampingRatio = Spring.DampingRatioNoBouncy,
+                                    stiffness = Spring.StiffnessMedium,
+                                ),
                             targetOffsetX = { fullWidth -> -slideDirection * fullWidth / 3 },
-                        ) + fadeOut(animationSpec = tween(140)))
+                        ) + scaleOut(
+                            targetScale = 0.9f,
+                            animationSpec =
+                                spring(
+                                    dampingRatio = Spring.DampingRatioNoBouncy,
+                                    stiffness = Spring.StiffnessMedium,
+                                ),
+                        ) + fadeOut(
+                            animationSpec =
+                                spring(
+                                    dampingRatio = Spring.DampingRatioNoBouncy,
+                                    stiffness = Spring.StiffnessMedium,
+                                ),
+                        ))
                 }
             },
             label = "dynamic_island_chip",
         ) { chipId ->
             val chip = chips.firstOrNull { it.chipId == chipId } ?: return@AnimatedContent
             var horizontalDragPx by remember(chipId, chips.size) { mutableFloatStateOf(0f) }
+            var verticalDragPx by remember(chipId, chips.size) { mutableFloatStateOf(0f) }
             val thresholdPx = with(LocalDensity.current) { 36.dp.toPx() }
+            val dismissThresholdPx = with(LocalDensity.current) { 24.dp.toPx() }
 
             StatusBarDynamicIslandChip(
                 viewModel = chip,
@@ -162,24 +228,44 @@ fun StatusBarDynamicIslandContainer(
                 cutoutSpec = cutoutSpec,
                 onChipBoundsChanged = { bounds -> anchorBounds = bounds },
                 modifier =
-                    Modifier.pointerInput(chips.size, chip.chipId) {
-                        detectHorizontalDragGestures(
-                            onDragEnd = {
-                                when {
-                                    horizontalDragPx <= -thresholdPx -> selectRelative(1)
-                                    horizontalDragPx >= thresholdPx -> selectRelative(-1)
-                                }
-                                horizontalDragPx = 0f
-                            },
-                            onDragCancel = { horizontalDragPx = 0f },
-                            onHorizontalDrag = { change, dragAmount ->
-                                horizontalDragPx += dragAmount
-                                if (chips.size > 1 && abs(horizontalDragPx) > 8f) {
-                                    change.consume()
-                                }
-                            },
-                        )
-                    },
+                    Modifier
+                        .pointerInput(chips.size, chip.chipId) {
+                            detectHorizontalDragGestures(
+                                onDragEnd = {
+                                    when {
+                                        horizontalDragPx <= -thresholdPx -> selectRelative(1)
+                                        horizontalDragPx >= thresholdPx -> selectRelative(-1)
+                                    }
+                                    horizontalDragPx = 0f
+                                },
+                                onDragCancel = { horizontalDragPx = 0f },
+                                onHorizontalDrag = { change, dragAmount ->
+                                    horizontalDragPx += dragAmount
+                                    if (chips.size > 1 && abs(horizontalDragPx) > 8f) {
+                                        change.consume()
+                                    }
+                                },
+                            )
+                        }
+                        // Swiping up dismisses the chip from the island until its event resets.
+                        .pointerInput(chipId, chips.size) {
+                            detectVerticalDragGestures(
+                                onDragEnd = {
+                                    if (verticalDragPx <= -dismissThresholdPx) {
+                                        chip.hidePopup()
+                                        chip.dismiss()
+                                    }
+                                    verticalDragPx = 0f
+                                },
+                                onDragCancel = { verticalDragPx = 0f },
+                                onVerticalDrag = { change, dragAmount ->
+                                    verticalDragPx += dragAmount
+                                    if (abs(verticalDragPx) > 8f) {
+                                        change.consume()
+                                    }
+                                },
+                            )
+                        },
                 onTap = {
                     if (chip.isPopupShown) chip.hidePopup() else chip.showPopup()
                 },
@@ -195,6 +281,26 @@ fun StatusBarDynamicIslandContainer(
         }
     }
 }
+
+/** Whether the expanded card should auto-collapse after [AutoCollapseTimeoutMs]. */
+private fun PopupChipModel.Shown.isAutoCollapsing(): Boolean =
+    when (val content = popupContent) {
+        is PopupContentModel.Media -> !content.model.isPlaying
+        is PopupContentModel.Charging -> true
+        is PopupContentModel.Flashlight -> true
+        is PopupContentModel.LiveScore -> true
+        is PopupContentModel.ScreenRecord ->
+            when (val model = content.model) {
+                is ScreenRecordPopupModel.Starting -> true
+                is ScreenRecordPopupModel.Recording -> false
+            }
+        is PopupContentModel.Alarm -> false
+        is PopupContentModel.Call -> false
+        is PopupContentModel.Stopwatch -> false
+        is PopupContentModel.None -> false
+    }
+
+private const val AutoCollapseTimeoutMs = 5_000L
 
 private fun androidx.compose.ui.layout.LayoutCoordinates.boundsInScreen(
     view: android.view.View

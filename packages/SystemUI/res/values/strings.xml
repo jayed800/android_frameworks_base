@@ -354,6 +354,13 @@
     <string name="dynamic_island_flashlight_enabled">Enabled</string>
     <string name="dynamic_island_flashlight_short">ON</string>
     <string name="dynamic_island_open_action">Open</string>
+    <string name="dynamic_island_charging_title">Charging</string>
+    <string name="dynamic_island_wireless_charging_title">Wireless Charging</string>
+    <string name="dynamic_island_charging_subtitle">Battery</string>
+    <string name="charging_island_percent_format">%1$d%%</string>
+    <string name="status_bar_charging_island_content_description">Charging</string>
+    <string name="status_bar_call_island_content_description">Ongoing call</string>
+    <string name="dynamic_island_call_title">Call</string>
     <string name="dynamic_island_open_clock_action">Open clock</string>
     <string name="dynamic_island_stopwatch_title">Stopwatch</string>
     <string name="dynamic_island_alarm_active_title">Alarm</string>

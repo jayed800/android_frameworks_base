@@ -17,6 +17,8 @@
 package com.android.systemui.statusbar.featurepods.popups.ui.model
 
 import com.android.systemui.statusbar.featurepods.alarm.shared.model.AlarmPopupModel
+import com.android.systemui.statusbar.featurepods.calls.shared.model.CallPopupModel
+import com.android.systemui.statusbar.featurepods.charging.shared.model.ChargingPopupModel
 import com.android.systemui.statusbar.featurepods.flashlight.shared.model.FlashlightPopupModel
 import com.android.systemui.common.shared.model.Icon
 import com.android.systemui.statusbar.featurepods.livescore.shared.model.LiveScoreChipModel
@@ -40,6 +42,10 @@ sealed class PopupChipId(val value: String) {
     data object Stopwatch : PopupChipId("Stopwatch")
 
     data object Alarm : PopupChipId("Alarm")
+
+    data object Charging : PopupChipId("Charging")
+
+    data object Call : PopupChipId("Call")
 
     data object AvControlsIndicator : PopupChipId("AvControlsIndicator")
 
@@ -76,6 +82,10 @@ sealed interface PopupContentModel {
     data class Stopwatch(val model: StopwatchPopupModel) : PopupContentModel
 
     data class Alarm(val model: AlarmPopupModel) : PopupContentModel
+
+    data class Charging(val model: ChargingPopupModel) : PopupContentModel
+
+    data class Call(val model: CallPopupModel) : PopupContentModel
 }
 
 /** Model for individual status bar popup chips. */
@@ -98,6 +108,8 @@ sealed class PopupChipModel {
         val isPopupShown: Boolean = false,
         val showPopup: () -> Unit = {},
         val hidePopup: () -> Unit = {},
+        /** Dismisses this chip from the island until its underlying event resets. */
+        val dismiss: () -> Unit = {},
         val hoverBehavior: HoverBehavior = HoverBehavior.None,
         val contentDescription: String? = null,
         val popupContent: PopupContentModel = PopupContentModel.None,

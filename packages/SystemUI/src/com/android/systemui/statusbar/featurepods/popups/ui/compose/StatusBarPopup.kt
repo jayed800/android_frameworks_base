@@ -24,8 +24,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
@@ -34,6 +33,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -43,10 +43,12 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.Density
@@ -57,6 +59,8 @@ import androidx.compose.ui.window.PopupProperties
 import com.android.systemui.res.R
 import com.android.systemui.statusbar.featurepods.alarm.ui.compose.AlarmPopup
 import com.android.systemui.statusbar.featurepods.av.ui.compose.AvControlsChipPopup
+import com.android.systemui.statusbar.featurepods.calls.ui.compose.CallPopup
+import com.android.systemui.statusbar.featurepods.charging.ui.compose.ChargingPopup
 import com.android.systemui.statusbar.featurepods.flashlight.ui.compose.FlashlightPopup
 import com.android.systemui.statusbar.featurepods.livescore.ui.compose.LiveScorePopup
 import com.android.systemui.statusbar.featurepods.media.ui.compose.MediaControlPopup
@@ -133,6 +137,8 @@ fun StatusBarPopup(
         val scaleY = remember { Animatable(initialScaleFromChip.y) }
         val alpha = remember { Animatable(0f) }
         val translationY = remember { Animatable(-24f) }
+        var verticalDragPx by remember { mutableFloatStateOf(0f) }
+        val dismissThresholdPx = with(LocalDensity.current) { 32.dp.toPx() }
         val colorMode = rememberPopupColorMode()
         val skipMotionOnDismiss = colorMode == POPUP_COLOR_MODE_BLUR
 
@@ -148,7 +154,7 @@ fun StatusBarPopup(
                             targetValue = 1f,
                             animationSpec =
                                 spring(
-                                    dampingRatio = 0.6f,
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
                                     stiffness = Spring.StiffnessLow,
                                 ),
                         )
@@ -158,7 +164,7 @@ fun StatusBarPopup(
                             targetValue = 1f,
                             animationSpec =
                                 spring(
-                                    dampingRatio = 0.65f,
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
                                     stiffness = Spring.StiffnessLow,
                                 ),
                         )
@@ -168,7 +174,7 @@ fun StatusBarPopup(
                             targetValue = 0f,
                             animationSpec =
                                 spring(
-                                    dampingRatio = 0.7f,
+                                    dampingRatio = Spring.DampingRatioNoBouncy,
                                     stiffness = Spring.StiffnessMediumLow,
                                 ),
                         )
@@ -199,7 +205,7 @@ fun StatusBarPopup(
                                 targetValue = initialScaleFromChip.x,
                                 animationSpec =
                                     spring(
-                                        dampingRatio = 0.8f,
+                                        dampingRatio = Spring.DampingRatioNoBouncy,
                                         stiffness = Spring.StiffnessMediumLow,
                                     ),
                             )
@@ -209,7 +215,7 @@ fun StatusBarPopup(
                                 targetValue = initialScaleFromChip.y,
                                 animationSpec =
                                     spring(
-                                        dampingRatio = 0.8f,
+                                        dampingRatio = Spring.DampingRatioNoBouncy,
                                         stiffness = Spring.StiffnessMediumLow,
                                     ),
                             )
@@ -247,6 +253,26 @@ fun StatusBarPopup(
                         .onGloballyPositioned { coordinates ->
                             popupBoundsInScreen = coordinates.boundsInScreen(popupView)
                         }
+                        // Swiping up dismisses the expanded card and its chip.
+                        .pointerInput(viewModel.chipId) {
+                            detectVerticalDragGestures(
+                                onDragStart = { verticalDragPx = 0f },
+                                onDragEnd = {
+                                    if (verticalDragPx <= -dismissThresholdPx) {
+                                        viewModel.hidePopup()
+                                        viewModel.dismiss()
+                                    }
+                                    verticalDragPx = 0f
+                                },
+                                onDragCancel = { verticalDragPx = 0f },
+                                onVerticalDrag = { change, dragAmount ->
+                                    verticalDragPx += dragAmount
+                                    if (kotlin.math.abs(verticalDragPx) > 8f) {
+                                        change.consume()
+                                    }
+                                },
+                            )
+                        }
                         .graphicsLayer {
                             this.scaleX = scaleX.value
                             this.scaleY = scaleY.value
@@ -274,6 +300,8 @@ fun StatusBarPopup(
                     is PopupContentModel.ScreenRecord -> ScreenRecordPopup(model = popupContent.model)
                     is PopupContentModel.LiveScore -> LiveScorePopup(model = popupContent.model)
                     is PopupContentModel.Flashlight -> FlashlightPopup(model = popupContent.model)
+                    is PopupContentModel.Charging -> ChargingPopup(model = popupContent.model)
+                    is PopupContentModel.Call -> CallPopup(model = popupContent.model)
                     is PopupContentModel.Stopwatch -> StopwatchPopup(model = popupContent.model)
                     is PopupContentModel.Alarm -> AlarmPopup(model = popupContent.model)
                     PopupContentModel.None ->
