@@ -253,14 +253,15 @@ fun StatusBarPopup(
                         .onGloballyPositioned { coordinates ->
                             popupBoundsInScreen = coordinates.boundsInScreen(popupView)
                         }
-                        // Swiping up dismisses the expanded card and its chip.
+                        // Swiping up only minimizes the expanded island back to the compact pill.
+                        // It must never dismiss the event, destroy the overlay, or clear event
+                        // listeners - the compact pill reappears and the event stays active.
                         .pointerInput(viewModel.chipId) {
                             detectVerticalDragGestures(
                                 onDragStart = { verticalDragPx = 0f },
                                 onDragEnd = {
                                     if (verticalDragPx <= -dismissThresholdPx) {
                                         viewModel.hidePopup()
-                                        viewModel.dismiss()
                                     }
                                     verticalDragPx = 0f
                                 },

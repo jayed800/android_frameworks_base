@@ -253,13 +253,14 @@ fun StatusBarDynamicIslandContainer(
                                 },
                             )
                         }
-                        // Swiping up dismisses the chip from the island until its event resets.
+                        // Swiping up only minimizes the island back to the compact pill. It must
+                        // never dismiss the event (which would hide the island until the event
+                        // resets).
                         .pointerInput(chipId, chips.size) {
                             detectVerticalDragGestures(
                                 onDragEnd = {
                                     if (verticalDragPx <= -dismissThresholdPx) {
                                         chip.hidePopup()
-                                        chip.dismiss()
                                     }
                                     verticalDragPx = 0f
                                 },
