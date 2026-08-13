@@ -228,7 +228,7 @@ private fun MediaProgressSection(
 ) {
     var isScrubbing by remember { mutableStateOf(false) }
     var displayedPositionMs by remember { mutableStateOf(positionMs.coerceIn(0L, durationMs)) }
-    val currentSeekAction by rememberUpdatedState(onSeekTo)
+    val currentSeekAction = rememberUpdatedState(onSeekTo)
 
     LaunchedEffect(positionMs, durationMs, isPlaying, isScrubbing) {
         if (isScrubbing) {
@@ -279,7 +279,7 @@ private fun MediaProgressSection(
                     if (!canBeScrubbed) return@pointerInput
                     detectTapGestures { offset ->
                         applyFraction(offset.x / boxWidthPx.coerceAtLeast(1).toFloat())
-                        currentSeekAction?.invoke(displayedPositionMs)
+                        currentSeekAction.value?.invoke(displayedPositionMs)
                     }
                 }
                 .pointerInput(canBeScrubbed, durationMs) {
@@ -290,7 +290,7 @@ private fun MediaProgressSection(
                             applyFraction(offset.x / boxWidthPx.coerceAtLeast(1).toFloat())
                         },
                         onDragEnd = {
-                            currentSeekAction?.invoke(displayedPositionMs)
+                            currentSeekAction.value?.invoke(displayedPositionMs)
                             isScrubbing = false
                         },
                         onDragCancel = { isScrubbing = false },
@@ -326,7 +326,7 @@ private fun MediaProgressSection(
                 )
             } else {
                 AndroidView(
-                    modifier = Modifier.fillMaxWidth().height(28.dp).then(gestureModifier),
+                    modifier = Modifier.fillMaxWidth().height(28.dp),
                     factory = { context ->
                         SeekBar(context).apply {
                             max = durationMs.toClampedInt()
@@ -365,6 +365,34 @@ private fun MediaProgressSection(
                                 layer.setDrawableByLayerId(android.R.id.progress, squiggle)
                                 progressDrawable = layer
                             }
+
+                            // The native SeekBar consumes touch events itself, so the Compose
+                            // pointer detectors above never receive a drag and seekTo is never
+                            // called (the thumb snaps back). Drive scrubbing through the view's own
+                            // listener instead so seekTo actually fires on release.
+                            setOnSeekBarChangeListener(
+                                object : SeekBar.OnSeekBarChangeListener {
+                                    override fun onProgressChanged(
+                                        bar: SeekBar?,
+                                        progress: Int,
+                                        fromUser: Boolean,
+                                    ) {
+                                        if (fromUser) {
+                                            isScrubbing = true
+                                            displayedPositionMs = progress.toLong()
+                                        }
+                                    }
+
+                                    override fun onStartTrackingTouch(bar: SeekBar?) {
+                                        isScrubbing = true
+                                    }
+
+                                    override fun onStopTrackingTouch(bar: SeekBar?) {
+                                        currentSeekAction.value?.invoke(displayedPositionMs)
+                                        isScrubbing = false
+                                    }
+                                },
+                            )
                         }
                     },
                     update = { seekBar ->
