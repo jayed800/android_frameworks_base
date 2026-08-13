@@ -17,6 +17,7 @@
 package com.android.systemui.statusbar.featurepods.popups.ui.compose
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
@@ -222,7 +223,12 @@ fun StatusBarDynamicIslandContainer(
             val thresholdPx = with(LocalDensity.current) { 36.dp.toPx() }
             val dismissThresholdPx = with(LocalDensity.current) { 24.dp.toPx() }
 
-            StatusBarDynamicIslandChip(
+            AnimatedVisibility(
+                visible = !popupVisible,
+                enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMedium)),
+                exit = fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMedium)),
+            ) {
+                StatusBarDynamicIslandChip(
                 viewModel = chip,
                 pageCount = chips.size,
                 cutoutSpec = cutoutSpec,
@@ -269,7 +275,8 @@ fun StatusBarDynamicIslandContainer(
                 onTap = {
                     if (chip.isPopupShown) chip.hidePopup() else chip.showPopup()
                 },
-            )
+                )
+            }
         }
 
         popupAnchorChip?.let { anchoredChip ->
